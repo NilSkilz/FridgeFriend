@@ -18,7 +18,6 @@ app.use(
 
 // Connect to database
 const uri = 'mongodb://127.0.0.1/grocy-dev';
-// 'mongodb://dbadmin:pdL48CF3GnUMvRMG@limeninja-cluster-shard-00-00-btsdg.mongodb.net:27017,limeninja-cluster-shard-00-01-btsdg.mongodb.net:27017,limeninja-cluster-shard-00-02-btsdg.mongodb.net:27017/grocy-dev?ssl=true&replicaSet=LimeNinja-Cluster-shard-0&authSource=admin';
 
 mongoose.connect(uri, {});
 

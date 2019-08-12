@@ -1,10 +1,10 @@
 import React from 'react';
 
-const Products = React.lazy(() => import('./containers/Views/Products/ProductView'));
-const Product = React.lazy(() => import('./containers/Views/Products/ProductDetails'));
-const Recipes = React.lazy(() => import('./containers/Views/Recipes/RecipesView'));
-const ShoppingList = React.lazy(() => import('./containers/Views/ShoppingList/ShoppingListView'));
-const Dashboard = React.lazy(() => import('./containers/Views/Dashboard/DashboardView'));
+const Products = React.lazy(() => import('./components/Views/Products/ProductView'));
+const Product = React.lazy(() => import('./components/Views/Products/ProductDetails'));
+const Recipes = React.lazy(() => import('./components/Views/Recipes/RecipesView'));
+const ShoppingList = React.lazy(() => import('./components/Views/ShoppingList/ShoppingListView'));
+const Dashboard = React.lazy(() => import('./components/Views/Dashboard/DashboardView'));
 // const Dashboard = React.lazy(() => import('./views/Dashboard'));
 
 const Breadcrumbs = React.lazy(() => import('./views/Base/Breadcrumbs'));
