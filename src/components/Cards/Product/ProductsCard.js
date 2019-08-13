@@ -9,7 +9,7 @@ class ProductsCard extends Component {
     toggleAddProductModal = () => {
         const { showAddProductModal } = this.state;
         if (showAddProductModal) {
-            this.setState({ product: null });
+            this.setState({ product: undefined });
         }
         this.setState({ showAddProductModal: !showAddProductModal });
     };

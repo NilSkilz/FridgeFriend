@@ -21,7 +21,6 @@ class RecipesTable extends Component {
                             let inStock = 0;
                             let ofStock = 0;
                             recipe.ingredients.forEach(prod => {
-                                console.log('Prod: ', prod);
                                 const product = products.find(
                                     product => product._id === prod.value
                                 );

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
 import {
     Table,
     Badge,
@@ -13,10 +12,8 @@ import Axios from 'axios';
 import _ from 'lodash';
 import moment from 'moment';
 
-import ProductBucket from '../../../buckets/products/product.bucket';
-
 class ProductTable extends Component {
-    state = { products: [], dropdownOpen: new Array(10).fill(false) };
+    state = { page: 1, products: [], dropdownOpen: new Array(10).fill(false) };
 
     toggle(i) {
         const newArray = this.state.dropdownOpen.map((element, index) => {
@@ -29,7 +26,6 @@ class ProductTable extends Component {
 
     componentDidMount() {
         // const { products } = this.props;
-        this.bucket = ProductBucket;
         // if (products.length === 0) {
         this.getData();
         // }
@@ -46,10 +42,10 @@ class ProductTable extends Component {
     };
 
     getData = () => {
-        this.bucket
-            .getProductsByPage({ page: 1, limit: 10 })
-            .then(products => {
-                this.setState({ products });
+        const { page } = this.state;
+        Axios.get(`/api/products?skip=${page - 1}&limit=${10}`)
+            .then(({ data }) => {
+                this.setState({ products: data.data });
             })
             .catch(err => this.error(err));
     };
@@ -127,7 +123,6 @@ class ProductTable extends Component {
     };
 
     addProduct = ({ product }) => {
-        console.log(product);
         this.toggleAddProductModal();
     };
 
@@ -306,15 +301,5 @@ class ProductTable extends Component {
         );
     }
 }
-
-// const mapStateToProps = state => {
-//     return {
-//         products: state.products
-//     };
-// };
-
-// const componentConnector = connect(mapStateToProps);
-
-// export default componentConnector(ProductTable);
 
 export default ProductTable;

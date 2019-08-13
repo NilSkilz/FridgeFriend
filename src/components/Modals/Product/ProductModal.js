@@ -9,19 +9,60 @@ import {
     FormGroup,
     Label,
     Input,
-    Alert
+    Alert,
+    Col,
+    InputGroup,
+    InputGroupAddon
 } from 'reactstrap';
 import Axios from 'axios';
 import _ from 'lodash';
 import moment from 'moment';
+import Select from 'react-select';
 
 class ProductModal extends Component {
-    state = { product: {}, visible: false, barcode: '', error: null };
+    state = { success: false, error: false, showForm: false, product: {} };
+
+    componentDidMount() {
+        this.getDepartments();
+        this.getSuperDepartments();
+    }
+
+    componentWillReceiveProps() {
+        const { product } = this.props;
+        if (product) this.setState({ product: product, showForm: true });
+    }
+
+    getDepartments = () => {
+        Axios.get('/api/departments').then(({ data }) => {
+            const departmentOptions = data.data.map(department => {
+                return {
+                    label: department.name,
+                    value: department._id
+                };
+            });
+            this.setState({ departmentOptions });
+        });
+    };
+
+    getSuperDepartments = () => {
+        Axios.get('/api/superdepartments').then(({ data }) => {
+            const superDepartmentOptions = data.data.map(department => {
+                return {
+                    label: department.name,
+                    value: department._id
+                };
+            });
+            this.setState({ superDepartmentOptions });
+        });
+    };
 
     handleChange = event => {
         event.preventDefault();
         const { value: barcode } = event.target;
-        this.setState({ barcode });
+        let { product } = this.state;
+        if (!product) product = {};
+        product.gtin = barcode;
+        this.setState({ product });
 
         if (barcode.length === 13) {
             this.getProductFromAPI(barcode);
@@ -80,27 +121,41 @@ class ProductModal extends Component {
                 product.name = product.description;
 
                 if (item) {
-                    console.log(item);
                     product.image = item.image;
                     product.department = item.department;
                     product.superDepartment = item.superDepartment;
                     product.price = item.price;
                 } else {
+                    product.minimum_stock = 2;
+                    this.setState({ product });
                     throw new Error('Cannot find complete product details');
                 }
-                this.createProduct(product);
+                this.saveProduct(product);
             })
             .catch(err => this.handleError(err));
     };
 
-    createProduct = product => {
-        Axios.post(`/api/products/`, product, {
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(({ data }) => {
-                this.addProductToStock(data.data);
+    saveProduct = product => {
+        if (!product._id) {
+            Axios.post(`/api/products/`, product, {
+                headers: { 'Content-Type': 'application/json' }
             })
-            .catch(err => this.handleError(err));
+                .then(({ data }) => {
+                    this.addProductToStock(data.data);
+                })
+                .catch(err => this.handleError(err));
+        } else {
+            Axios.put(`/api/products/${product._id}`, product, {
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(({ data }) => {
+                    this.setState({ product: product, success: 'Product updated' });
+                    setTimeout(() => {
+                        this.setState({ success: false });
+                    }, 3000);
+                })
+                .catch(err => this.handleError(err));
+        }
     };
 
     addProductToStock = product => {
@@ -115,17 +170,50 @@ class ProductModal extends Component {
         }
         Axios.post(`/api/stock/`, payload)
             .then(() => {
-                this.setState({ product: product.name, visible: true, barcode: '' });
+                this.setState({
+                    product: null,
+                    success: `Added 1x ${product.name}`
+                });
                 setTimeout(() => {
-                    this.setState({ visible: false });
+                    this.setState({ success: false });
                 }, 3000);
             })
             .catch(err => this.handleError(err));
     };
 
+    close = () => {
+        const { closeModal } = this.props;
+        this.setState({ product: {}, showForm: false });
+        closeModal();
+    };
+
+    save = () => {
+        const { product } = this.state;
+        this.saveProduct(product);
+    };
+
+    decreaseMinStock = () => {
+        const { product } = this.state;
+        product.minimum_stock--;
+        this.setState({ product });
+    };
+
+    increaseMinStock = () => {
+        const { product } = this.state;
+        product.minimum_stock++;
+        this.setState({ product });
+    };
+
+    minStockChanged = event => {
+        const { product } = this.state;
+        product.minimum_stock = event.target.value;
+        this.setState({ product });
+    };
+
     render() {
-        const { show, closeModal } = this.props;
-        const { barcode, visible, product, error, showForm } = this.state;
+        const { show } = this.props;
+        const { success, error, product, departmentOptions, superDepartmentOptions } = this.state;
+
         return (
             <Fragment>
                 <Modal isOpen={show} autoFocus={false}>
@@ -133,26 +221,27 @@ class ProductModal extends Component {
                     <ModalBody>
                         <Form onSubmit={event => event.preventDefault()}>
                             <FormGroup>
-                                <Alert color="success" isOpen={visible}>
-                                    {`Added 1 x ${product}`}
+                                <Alert color="success" isOpen={success}>
+                                    {success}
                                 </Alert>
                                 <Alert color="danger" isOpen={error}>
                                     {error}
                                 </Alert>
+
                                 <Label for="barcode">Barcode</Label>
                                 <Input
                                     autoFocus
                                     ref={input => {
                                         this.barcodeInput = input;
                                     }}
-                                    value={barcode}
+                                    value={product.gtin}
                                     type="input"
                                     name="barcode"
                                     id="barcode"
                                     // value={product.barcode}
                                     onChange={this.handleChange}
                                 />
-                                {showForm ? (
+                                {product.name ? (
                                     <Fragment>
                                         <Label className="pt-3" for="name">
                                             Name
@@ -174,14 +263,81 @@ class ProductModal extends Component {
                                             id="price"
                                             onChange={this.handleChange}
                                         />
+                                        <Label className="pt-3" for="price">
+                                            Minimum Stock
+                                        </Label>
+                                        <Col xs="4" lg="4" className="d-flex p-0">
+                                            <InputGroup>
+                                                <InputGroupAddon addonType="prepend">
+                                                    <Button
+                                                        type="button"
+                                                        color="secondary"
+                                                        onClick={this.increaseMinStock}
+                                                        style={{ zIndex: 'auto' }}
+                                                    >
+                                                        <i
+                                                            className="cui-chevron-top icons"
+                                                            style={{ color: '#fff' }}
+                                                        />
+                                                    </Button>
+                                                </InputGroupAddon>
+                                                <Input
+                                                    type="text"
+                                                    value={product.minimum_stock}
+                                                    onChange={this.minStockChanged}
+                                                    style={{ height: 'auto' }}
+                                                />
+                                                <InputGroupAddon addonType="append">
+                                                    <Button
+                                                        type="button"
+                                                        color="secondary"
+                                                        onClick={this.decreaseMinStock}
+                                                        style={{ zIndex: 'auto' }}
+                                                    >
+                                                        <i
+                                                            className="cui-chevron-bottom icons"
+                                                            style={{ color: '#fff' }}
+                                                        />
+                                                    </Button>
+                                                </InputGroupAddon>
+                                            </InputGroup>
+                                        </Col>
+                                        <Label className="pt-3" for="price">
+                                            Department
+                                        </Label>
+                                        <Select
+                                            className="basic-single"
+                                            defaultValue={departmentOptions[0]}
+                                            value={departmentOptions.find(
+                                                option => option.value === product.department
+                                            )}
+                                            name="department"
+                                            options={departmentOptions}
+                                        />
+
+                                        <Label className="pt-3" for="price">
+                                            Supermarket Department
+                                        </Label>
+                                        <Select
+                                            className="basic-single"
+                                            defaultValue={superDepartmentOptions[0]}
+                                            value={superDepartmentOptions.find(
+                                                option => option.value === product.superDepartment
+                                            )}
+                                            name="superDepartment"
+                                            options={superDepartmentOptions}
+                                        />
                                     </Fragment>
                                 ) : null}
                             </FormGroup>
                         </Form>
                     </ModalBody>
                     <ModalFooter>
-                        <Button variant="secondary" onClick={closeModal}>
+                        <Button color="secondary" onClick={this.close}>
                             Close
+                        </Button>
+                        <Button color="primary" onClick={this.save}>
+                            Save
                         </Button>
                     </ModalFooter>
                 </Modal>

@@ -34,7 +34,6 @@ class ShoppingListTable extends Component {
     getData = () => {
         Axios.get(`/api/products?limit=10&skip=0`)
             .then(({ data }) => {
-                console.log(data);
                 const products = data.data;
                 this.setState({ products });
             })
@@ -114,7 +113,6 @@ class ShoppingListTable extends Component {
     };
 
     addProduct = ({ product }) => {
-        console.log(product);
         this.toggleAddProductModal();
     };
 

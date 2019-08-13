@@ -1,7 +1,6 @@
 var express = require('express');
 var app = express();
 var http = require('http').createServer(app);
-var io = require('socket.io')(http);
 var _ = require('lodash');
 var mongoose = require('mongoose');
 var Jimp = require('jimp');
@@ -83,16 +82,26 @@ app.get('/api/products/', (req, res) => {
         .catch(err => handleError(err));
 });
 
+app.put('/api/products/:id', (req, res) => {
+    Product.findByIdAndUpdate(req.params.id, req.body)
+        .exec()
+        .then(product => {
+            res.send({
+                total: 1,
+                page: 1,
+                data: product
+            });
+        })
+        .catch(err => handleError(err));
+});
+
 app.post('/api/products', (req, res) => {
     const { department, superDepartment } = req.body;
 
     getDepartment(department)
         .then(dept => {
-            console.log(dept);
             getSuperDepartment(superDepartment).then(superDept => {
-                console.log(superDept);
                 getBestBeforeDate(req.body.image).then(bestBefore => {
-                    console.log(bestBefore);
                     new Product({
                         ...req.body,
                         department: dept._id,
@@ -211,8 +220,6 @@ app.post('/api/stock', (req, res) => {
                             page: 1,
                             data
                         };
-                        console.log('Emitting...');
-                        io.emit('products', { data: payload });
                         res.send(payload);
                     });
                 })
@@ -270,6 +277,34 @@ app.put('/api/recipes/:id', (req, res) => {
         .catch(err => handleError(err));
 });
 
+// ----------------------
+//  Departments
+// ------------
+
+app.get('/api/departments', (req, res) => {
+    Department.find()
+        .exec()
+        .then(departments => {
+            res.send({
+                total: departments.length,
+                page: 1,
+                data: departments
+            });
+        });
+});
+
+app.get('/api/superdepartments', (req, res) => {
+    SuperDepartment.find()
+        .exec()
+        .then(departments => {
+            res.send({
+                total: departments.length,
+                page: 1,
+                data: departments
+            });
+        });
+});
+
 app.get('/api/auth', function(req, res) {
     res.json(user);
 });
@@ -282,10 +317,6 @@ app.post('/api/auth/login', function(req, res) {
 app.post('/api/auth/logout', function(req, res) {
     user = false;
     res.json(user);
-});
-
-io.on('connection', function(socket) {
-    console.log('Connected');
 });
 
 http.listen(4000, function() {

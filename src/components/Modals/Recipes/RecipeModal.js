@@ -61,7 +61,6 @@ class ProductModal extends Component {
                 value: product._id
             };
         });
-        console.log(options);
         this.setState({ options });
     };
 
@@ -69,7 +68,6 @@ class ProductModal extends Component {
         const { recipe } = this.state;
         event.quantity = 1;
         recipe.ingredients[type.name] = event;
-        console.log(recipe);
         this.setState({ recipe });
     };
 
@@ -160,7 +158,6 @@ class ProductModal extends Component {
                                 </Label>
                                 {recipe.ingredients &&
                                     recipe.ingredients.map((ingredient, index) => {
-                                        console.log(ingredient);
                                         return (
                                             <Row key={index} className="mt-3">
                                                 <Col xs="12" lg="8">

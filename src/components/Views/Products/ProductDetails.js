@@ -26,7 +26,6 @@ class ProductDetails extends Component {
 
     render() {
         const { product } = this.state;
-        console.log(product);
         return (
             <Container fluid>
                 <Suspense fallback={this.loading()}>
