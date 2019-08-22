@@ -1,6 +1,3 @@
-import moment from 'moment';
-import _ from 'lodash';
-
 const DEFAULT_SETTINGS = {
     products: []
 };
@@ -17,7 +14,6 @@ function getState() {
 const rootReducer = (state = getState(), action) => {
     switch (action.type) {
         case 'ADD_PRODUCTS': {
-            console.log('Adding products to store');
             return { ...state, products: action.products };
         }
 

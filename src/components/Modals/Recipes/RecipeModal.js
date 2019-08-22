@@ -24,7 +24,7 @@ class ProductModal extends Component {
         this.getProducts();
     }
 
-    componentWillReceiveProps(props) {
+    componentDidUpdate(props) {
         const { recipe } = props;
         if (recipe) this.setState({ recipe });
     }
@@ -92,25 +92,45 @@ class ProductModal extends Component {
         }
     };
 
-    quantityChanged = event => {
+    quantityChanged = ({ target }) => {
+        const { id, value } = target;
         const { recipe } = this.state;
         const { ingredients } = recipe;
-        ingredients[event.target.id].quantity = event.target.value;
+        ingredients[id].quantity = value;
         this.setState({ recipe });
     };
 
-    quantityUp = event => {
+    quantityUp = ({ target }) => {
+        const { id } = target;
         const { recipe } = this.state;
         const { ingredients } = recipe;
-        ingredients[event.target.id].quantity = ingredients[event.target.id].quantity + 1;
+        let quantity = parseFloat(ingredients[id].quantity);
+
+        if (quantity < 0.9) {
+            quantity = (quantity + 0.1).toFixed(1);
+        } else if (quantity === 0.9) {
+            quantity = 1;
+        } else {
+            quantity = quantity + 1;
+        }
+        ingredients[id].quantity = quantity;
         this.setState({ recipe });
     };
 
-    quantityDown = event => {
+    quantityDown = ({ target }) => {
+        const { id } = target;
         const { recipe } = this.state;
         const { ingredients } = recipe;
-        ingredients[event.target.id].quantity = ingredients[event.target.id].quantity - 1;
-        if (ingredients[event.target.id].quantity < 1) ingredients[event.target.id].quantity = 1;
+        let quantity = parseFloat(ingredients[id].quantity);
+        if (quantity <= 1) {
+            if (quantity > 0.1) {
+                quantity = (quantity - 0.1).toFixed(1);
+            }
+        } else {
+            quantity = quantity - 1;
+        }
+
+        ingredients[id].quantity = quantity;
         this.setState({ recipe });
     };
 
@@ -154,7 +174,7 @@ class ProductModal extends Component {
                                     onChange={this.handleServings}
                                 />
                                 <Row className="mt-3">
-                                    <Col lg="6">
+                                    <Col lg="8">
                                         <Label for="ingredients" className="mt-3">
                                             Ingredients
                                         </Label>
@@ -164,20 +184,14 @@ class ProductModal extends Component {
                                             Quantity
                                         </Label>
                                     </Col>
-                                    <Col lg="1" />
-                                    <Col lg="2">
-                                        <Label for="amount" className="mt-3">
-                                            Amount
-                                        </Label>
-                                    </Col>
                                 </Row>
                                 {recipe.ingredients &&
                                     recipe.ingredients.map((ingredient, index) => {
                                         return (
                                             <Row key={index} className="mt-3">
-                                                <Col xs="12" lg="6">
+                                                <Col xs="12" lg="8">
                                                     <Select
-                                                        name="ingredients"
+                                                        name={index}
                                                         id={index}
                                                         value={{
                                                             label: ingredient.label,
@@ -209,7 +223,7 @@ class ProductModal extends Component {
                                                         <Input
                                                             type="text"
                                                             id={index}
-                                                            name="quantity"
+                                                            name={index}
                                                             value={ingredient.quantity}
                                                             onChange={this.quantityChanged}
                                                             style={{ height: 'auto' }}
@@ -232,31 +246,6 @@ class ProductModal extends Component {
                                                             </Button>
                                                         </InputGroupAddon>
                                                     </InputGroup>
-                                                </Col>
-                                                <Col lg="1">
-                                                    <div className="ml-3 mt-2">or</div>
-                                                </Col>
-                                                <Col xs="12" lg="2">
-                                                    <Input
-                                                        type="text"
-                                                        id={index}
-                                                        name={index}
-                                                        value="10%"
-                                                        onChange={this.quantityChanged}
-                                                        style={{ height: 'auto' }}
-                                                    />
-                                                </Col>
-                                                <Col className="align-middle text-center m-0 p-0">
-                                                    <i
-                                                        className="fa fa-close icons"
-                                                        style={{
-                                                            color: '#999',
-                                                            lineHeight: '36px'
-                                                        }}
-                                                        id={index}
-                                                        name={index}
-                                                        onClick={this.deleteIngredient}
-                                                    />
                                                 </Col>
                                             </Row>
                                         );

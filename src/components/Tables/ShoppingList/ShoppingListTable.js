@@ -21,7 +21,7 @@ class ShoppingListTable extends Component {
         this.getData();
     }
 
-    componentWillReceiveProps() {
+    componentDidUpdate() {
         this.getData();
     }
 

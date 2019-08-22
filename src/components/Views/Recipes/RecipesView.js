@@ -20,7 +20,7 @@ class RecipesView extends Component {
                         <Fragment>
                             <div className="animated fadeIn">
                                 <Row>
-                                    <Col xs="12" lg="6">
+                                    <Col lg="12">
                                         <RecipesCard title="Recipes" />
                                     </Col>
                                 </Row>

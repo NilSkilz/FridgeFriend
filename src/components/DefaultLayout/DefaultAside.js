@@ -36,7 +36,6 @@ class DefaultAside extends Component {
     }
 
     getData = () => {
-        console.log('getting');
         Axios.get('/api/logs')
             .then(({ data }) => {
                 this.setState({ logs: data.data });

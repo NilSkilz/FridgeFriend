@@ -10,8 +10,6 @@ class DataTable extends Component {
         this.getData();
     }
 
-    componentWillReceiveProps() {}
-
     getData = () => {
         const { url, filter } = this.props;
         Axios.get(url).then(({ data }) => {

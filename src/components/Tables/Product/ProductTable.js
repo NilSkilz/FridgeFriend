@@ -82,7 +82,6 @@ class ProductTable extends Component {
         if (newQuantity === 0) {
             payload.consumed_date = new Date();
         }
-        console.log('updating stock');
         Axios.put(`/api/stock/${stock._id}`, payload)
             .then(({ data }) => {
                 let { products } = this.state;

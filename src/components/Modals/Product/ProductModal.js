@@ -27,7 +27,7 @@ class ProductModal extends Component {
         this.getSuperDepartments();
     }
 
-    componentWillReceiveProps() {
+    componentDidUpdate() {
         const { product } = this.props;
         if (product) this.setState({ product: product, showForm: true });
     }

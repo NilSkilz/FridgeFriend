@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import moment from 'moment';
-import _ from 'lodash';
 import Axios from 'axios';
 import { Link } from 'react-router-dom';
-import { Badge, DropdownMenu, DropdownItem, DropdownToggle, ButtonDropdown } from 'reactstrap';
+import { Badge } from 'reactstrap';
 
 class OOSProductRow extends Component {
     state = { page: 1, totalCount: 0, products: [], dropdownOpen: new Array(10).fill(false) };
@@ -79,31 +77,8 @@ class OOSProductRow extends Component {
 
     render() {
         const { item: product, index } = this.props;
-
         let combined = { quantity: 0 };
-        let openCount = 0;
-        let earliestBestBefore = null;
-        if (product.stock.length > 0) {
-            combined = this.getProductStockCount(product);
 
-            earliestBestBefore = product.stock[0].best_before_date;
-            product.stock.forEach(stock => {
-                if (stock.open) openCount++;
-                if (
-                    stock.best_before_date &&
-                    moment(stock.best_before_date).isBefore(moment(earliestBestBefore))
-                ) {
-                    earliestBestBefore = moment(stock.best_before_date);
-                }
-            });
-        }
-
-        let numPacks = 0;
-        const packSize = _.get(product, 'qtyContents.numberOfUnits', 1);
-
-        if (packSize > 1) {
-            numPacks = Math.ceil(combined.quantity / packSize);
-        }
         return (
             <tr key={index} className="fade show">
                 <td className="align-middle">

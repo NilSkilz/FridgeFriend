@@ -25,7 +25,7 @@ class ProductView extends Component {
                         <Fragment>
                             <div className="animated fadeIn">
                                 <Row>
-                                    <Col xs="12" lg="12">
+                                    <Col lg="12">
                                         <ProductsCard
                                             refresh={this.refresh}
                                             add
@@ -48,6 +48,10 @@ class ProductView extends Component {
                                                 { label: '' }
                                             ]}
                                         />
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col lg="12">
                                         <ProductsCard
                                             refresh={this.refresh}
                                             url={`/api/products`}
