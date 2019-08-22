@@ -62,6 +62,7 @@ class RecipesCard extends Component {
         return (
             <Fragment>
                 <RecipeModal
+                    className="modal-xl"
                     show={showAddRecipeModal}
                     addRecipe={this.addRecipe}
                     closeModal={this.toggleAddRecipeModal}

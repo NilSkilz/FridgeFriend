@@ -1,19 +1,23 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import {
     Table,
     Badge,
     ButtonDropdown,
     DropdownToggle,
     DropdownMenu,
-    DropdownItem
+    DropdownItem,
+    PaginationItem,
+    PaginationLink,
+    Pagination
 } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import Axios from 'axios';
 import _ from 'lodash';
 import moment from 'moment';
+import DataTable from '../DataTable';
 
 class ProductTable extends Component {
-    state = { page: 1, products: [], dropdownOpen: new Array(10).fill(false) };
+    state = { page: 1, totalCount: 0, products: [], dropdownOpen: new Array(10).fill(false) };
 
     toggle(i) {
         const newArray = this.state.dropdownOpen.map((element, index) => {
@@ -25,14 +29,7 @@ class ProductTable extends Component {
     }
 
     componentDidMount() {
-        // const { products } = this.props;
-        // if (products.length === 0) {
         this.getData();
-        // }
-    }
-
-    componentWillReceiveProps() {
-        // this.getData();
     }
 
     error = err => {
@@ -42,10 +39,9 @@ class ProductTable extends Component {
     };
 
     getData = () => {
-        const { page } = this.state;
-        Axios.get(`/api/products?skip=${page - 1}&limit=${10}`)
+        Axios.get(`/api/products`)
             .then(({ data }) => {
-                this.setState({ products: data.data });
+                this.setState({ products: data.products });
             })
             .catch(err => this.error(err));
     };
@@ -86,6 +82,7 @@ class ProductTable extends Component {
         if (newQuantity === 0) {
             payload.consumed_date = new Date();
         }
+        console.log('updating stock');
         Axios.put(`/api/stock/${stock._id}`, payload)
             .then(({ data }) => {
                 let { products } = this.state;
@@ -134,170 +131,233 @@ class ProductTable extends Component {
         editProduct(product);
     };
 
-    render() {
-        const { products } = this.state;
-        const { hideInStock, hideOutOfStock } = this.props;
+    getPagination = () => {
+        const { products, page } = this.state;
+        const pages = Math.ceil(parseInt(products.length) / 10);
+
+        let items = [];
+
+        for (let i = 0; i < pages; i++) {
+            items.push(
+                <PaginationItem active={page === i + 1 ? true : false} key={i}>
+                    <PaginationLink tag="button" onClick={this.setPage}>
+                        {i + 1}
+                    </PaginationLink>
+                </PaginationItem>
+            );
+        }
+
         return (
-            <Table responsive hover>
-                <thead>
-                    <tr>
-                        <th />
-                        <th>Product</th>
-                        <th colSpan="2">Quantity</th>
+            <Pagination>
+                <PaginationItem>
+                    <PaginationLink previous tag="button" onClick={this.prevPage} />
+                </PaginationItem>
+                {items}
+                <PaginationItem>
+                    <PaginationLink next tag="button" onClick={this.nextPage} />
+                </PaginationItem>
+            </Pagination>
+        );
+    };
 
-                        <th>Best Before</th>
-                        <th />
-                    </tr>
-                </thead>
-                <tbody>
-                    {products.map((product, index) => {
-                        if (hideOutOfStock) {
-                            if (product.stock.length < 1) return null;
-                        }
+    nextPage = () => {
+        let { products, page } = this.state;
+        const pages = Math.ceil(parseInt(products.length) / 10);
+        if (page < pages) page++;
+        this.setState({ page }, () => {
+            this.getData();
+        });
+    };
 
-                        if (hideInStock) {
-                            if (product.stock.length > 0) return null;
-                        }
+    prevPage = () => {
+        let { page } = this.state;
+        if (page > 1) page--;
+        this.setState({ page }, () => {
+            this.getData();
+        });
+    };
 
-                        let combined = { quantity: 0 };
-                        let openCount = 0;
-                        let earliestBestBefore = null;
-                        if (product.stock.length > 0) {
-                            combined = this.getProductStockCount(product);
+    setPage = event => {
+        let { page } = this.state;
+        page = parseInt(event.target.innerHTML);
+        this.setState({ page }, () => {
+            this.getData();
+        });
+    };
 
-                            earliestBestBefore = product.stock[0].best_before_date;
-                            product.stock.forEach(stock => {
-                                if (stock.open) openCount++;
-                                if (
-                                    stock.best_before_date &&
-                                    moment(stock.best_before_date).isBefore(
-                                        moment(earliestBestBefore)
-                                    )
-                                ) {
-                                    earliestBestBefore = moment(stock.best_before_date);
-                                }
-                            });
-                        }
+    render() {
+        const { products, page } = this.state;
+        const { hideInStock, hideOutOfStock } = this.props;
 
-                        let numPacks = 0;
-                        const packSize = _.get(product, 'qtyContents.numberOfUnits', 1);
+        const array = _.cloneDeep(products).splice((page - 1) * 10, 10);
 
-                        if (packSize > 1) {
-                            numPacks = Math.ceil(combined.quantity / packSize);
-                        }
-                        return (
-                            <tr key={index} className="fade show">
-                                <td className="align-middle">
-                                    {combined.quantity < product.minimum_stock ? (
-                                        <Badge
-                                            pill
-                                            color={combined.quantity === 0 ? 'danger' : 'warning'}
+        return (
+            <Fragment>
+                <Table responsive hover>
+                    <thead>
+                        <tr>
+                            <th />
+                            <th>Product</th>
+                            <th colSpan="2">Quantity</th>
+
+                            <th>Best Before</th>
+                            <th />
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {array.map((product, index) => {
+                            if (hideOutOfStock) {
+                                if (product.stock.length < 1) return null;
+                            }
+
+                            if (hideInStock) {
+                                if (product.stock.length > 0) return null;
+                            }
+
+                            let combined = { quantity: 0 };
+                            let openCount = 0;
+                            let earliestBestBefore = null;
+                            if (product.stock.length > 0) {
+                                combined = this.getProductStockCount(product);
+
+                                earliestBestBefore = product.stock[0].best_before_date;
+                                product.stock.forEach(stock => {
+                                    if (stock.open) openCount++;
+                                    if (
+                                        stock.best_before_date &&
+                                        moment(stock.best_before_date).isBefore(
+                                            moment(earliestBestBefore)
+                                        )
+                                    ) {
+                                        earliestBestBefore = moment(stock.best_before_date);
+                                    }
+                                });
+                            }
+
+                            let numPacks = 0;
+                            const packSize = _.get(product, 'qtyContents.numberOfUnits', 1);
+
+                            if (packSize > 1) {
+                                numPacks = Math.ceil(combined.quantity / packSize);
+                            }
+                            return (
+                                <tr key={index} className="fade show">
+                                    <td className="align-middle">
+                                        {combined.quantity < product.minimum_stock ? (
+                                            <Badge
+                                                pill
+                                                color={
+                                                    combined.quantity === 0 ? 'danger' : 'warning'
+                                                }
+                                            >
+                                                <div
+                                                    style={{ height: '10px', width: '2px' }}
+                                                    className="d-block"
+                                                />
+                                            </Badge>
+                                        ) : (
+                                            <Badge pill color={'success'}>
+                                                <div
+                                                    style={{ height: '10px', width: '2px' }}
+                                                    className="d-block"
+                                                />
+                                            </Badge>
+                                        )}
+                                    </td>
+                                    <td className="p-1 align-middle">
+                                        <Link to={`products/${product._id}`} className="nav-link">
+                                            {product.name}
+                                        </Link>
+                                    </td>
+                                    <td className="p-1 align-middle">
+                                        <div className="d-inline-block pr-3 float-right">
+                                            {combined.quantity}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="d-inline-block">
+                                            <div className="d-block" style={{ fontSize: '10px' }}>
+                                                {numPacks > 0
+                                                    ? `${numPacks} pack${numPacks > 1 ? 's' : ''}`
+                                                    : ''}
+                                            </div>
+                                            <div className="d-block" style={{ fontSize: '10px' }}>
+                                                {openCount > 0 ? `${openCount} opened` : ''}
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td className="p-1 align-middle text-center">
+                                        {(earliestBestBefore &&
+                                            moment(earliestBestBefore).fromNow()) ||
+                                            '-'}
+                                    </td>
+
+                                    <td className="align-middle text-right">
+                                        <ButtonDropdown
+                                            id={index}
+                                            direction="left"
+                                            className="p-0 m-0"
+                                            isOpen={this.state.dropdownOpen[index]}
+                                            toggle={() => {
+                                                this.toggle(index);
+                                            }}
                                         >
-                                            <div
-                                                style={{ height: '10px', width: '2px' }}
-                                                className="d-block"
-                                            />
-                                        </Badge>
-                                    ) : (
-                                        <Badge pill color={'success'}>
-                                            <div
-                                                style={{ height: '10px', width: '2px' }}
-                                                className="d-block"
-                                            />
-                                        </Badge>
-                                    )}
-                                </td>
-                                <td className="p-1 align-middle">
-                                    <Link to={`products/${product._id}`} className="nav-link">
-                                        {product.name}
-                                    </Link>
-                                </td>
-                                <td className="p-1 align-middle">
-                                    <div className="d-inline-block pr-3 float-right">
-                                        {combined.quantity}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div className="d-inline-block">
-                                        <div className="d-block" style={{ fontSize: '10px' }}>
-                                            {numPacks > 0
-                                                ? `${numPacks} pack${numPacks > 1 ? 's' : ''}`
-                                                : ''}
-                                        </div>
-                                        <div className="d-block" style={{ fontSize: '10px' }}>
-                                            {openCount > 0 ? `${openCount} opened` : ''}
-                                        </div>
-                                    </div>
-                                </td>
+                                            <DropdownToggle size="sm" color="">
+                                                <i
+                                                    id={index}
+                                                    className="icon-options-vertical icons mr-3"
+                                                    style={{ cursor: 'pointer' }}
+                                                />
+                                            </DropdownToggle>
+                                            <DropdownMenu>
+                                                <DropdownItem
+                                                    id={index}
+                                                    onClick={this.consumeOne}
+                                                    className="pt-0 pb-0"
+                                                >
+                                                    Consume One
+                                                </DropdownItem>
+                                                <DropdownItem
+                                                    id={index}
+                                                    onClick={this.consumeAll}
+                                                    className="pt-0 pb-0"
+                                                >
+                                                    Consume All
+                                                </DropdownItem>
+                                                <DropdownItem
+                                                    id={index}
+                                                    onClick={this.openStock}
+                                                    className="pt-0 pb-0"
+                                                >
+                                                    Mark as open
+                                                </DropdownItem>
+                                                <DropdownItem id={index} className="pt-0 pb-0">
+                                                    Mark One as Spoiled
+                                                </DropdownItem>
+                                            </DropdownMenu>
+                                        </ButtonDropdown>
 
-                                <td className="p-1 align-middle text-center">
-                                    {(earliestBestBefore && moment(earliestBestBefore).fromNow()) ||
-                                        '-'}
-                                </td>
-
-                                <td className="align-middle text-right">
-                                    <ButtonDropdown
-                                        id={index}
-                                        direction="left"
-                                        className="p-0 m-0"
-                                        isOpen={this.state.dropdownOpen[index]}
-                                        toggle={() => {
-                                            this.toggle(index);
-                                        }}
-                                    >
-                                        <DropdownToggle size="sm" color="">
-                                            <i
-                                                id={index}
-                                                className="icon-options-vertical icons mr-3"
-                                                style={{ cursor: 'pointer' }}
-                                            />
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            <DropdownItem
-                                                id={index}
-                                                onClick={this.consumeOne}
-                                                className="pt-0 pb-0"
-                                            >
-                                                Consume One
-                                            </DropdownItem>
-                                            <DropdownItem
-                                                id={index}
-                                                onClick={this.consumeAll}
-                                                className="pt-0 pb-0"
-                                            >
-                                                Consume All
-                                            </DropdownItem>
-                                            <DropdownItem
-                                                id={index}
-                                                onClick={this.openStock}
-                                                className="pt-0 pb-0"
-                                            >
-                                                Mark as open
-                                            </DropdownItem>
-                                            <DropdownItem id={index} className="pt-0 pb-0">
-                                                Mark One as Spoiled
-                                            </DropdownItem>
-                                        </DropdownMenu>
-                                    </ButtonDropdown>
-
-                                    <i
-                                        id={index}
-                                        className="align-middle cui-pencil icons mr-3"
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={this.editProduct}
-                                    />
-                                    <i
-                                        id={index}
-                                        className="align-middle cui-trash icons mr-0 pr-0"
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={this.deleteProduct}
-                                    />
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </Table>
+                                        <i
+                                            id={index}
+                                            className="align-middle cui-pencil icons mr-3"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={this.editProduct}
+                                        />
+                                        <i
+                                            id={index}
+                                            className="align-middle cui-trash icons mr-0 pr-0"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={this.deleteProduct}
+                                        />
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </Table>
+                {this.getPagination()}
+            </Fragment>
         );
     }
 }

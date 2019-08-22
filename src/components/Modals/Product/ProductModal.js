@@ -161,7 +161,8 @@ class ProductModal extends Component {
     addProductToStock = product => {
         const payload = {
             product: product._id,
-            quantity: product.qtyContents.numberOfUnits || 1
+            quantity: product.qtyContents.numberOfUnits || 1,
+            minimum_stock: product.qtyContents.numberOfUnits * 2 || 2
         };
         if (product.best_before) {
             payload.best_before_date = moment()
@@ -171,7 +172,7 @@ class ProductModal extends Component {
         Axios.post(`/api/stock/`, payload)
             .then(() => {
                 this.setState({
-                    product: null,
+                    product: { gtin: '' },
                     success: `Added 1x ${product.name}`
                 });
                 setTimeout(() => {

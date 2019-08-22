@@ -7,7 +7,7 @@ var ProductSchema = new Schema({
         required: true,
         default: mongoose.Types.ObjectId()
     },
-
+    price: { type: Number, required: false },
     name: { type: String, required: true },
     gtin: { type: String, required: false },
     tpnb: { type: String, required: false },

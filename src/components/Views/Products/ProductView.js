@@ -3,6 +3,7 @@ import { Redirect, Switch } from 'react-router-dom';
 import { Container } from 'reactstrap';
 import { Row, Col } from 'reactstrap';
 import ProductsCard from '../../Cards/Product/ProductsCard';
+import { connect } from 'react-redux';
 
 class ProductView extends Component {
     loading = () => <div className="animated fadeIn pt-1 text-center">Loading...</div>;
@@ -11,6 +12,10 @@ class ProductView extends Component {
         e.preventDefault();
         this.props.history.push('/login');
     }
+
+    refresh = () => {
+        this.setState({ state: this.state });
+    };
 
     render() {
         return (
@@ -21,8 +26,43 @@ class ProductView extends Component {
                             <div className="animated fadeIn">
                                 <Row>
                                     <Col xs="12" lg="12">
-                                        <ProductsCard hideOutOfStock title="In Stock" />
-                                        <ProductsCard hideInStock title="Out of Stock" />
+                                        <ProductsCard
+                                            refresh={this.refresh}
+                                            add
+                                            url={`/api/products`}
+                                            title="In Stock"
+                                            filter={items => {
+                                                this.props.dispatch({
+                                                    type: 'ADD_PRODUCTS',
+                                                    products: items
+                                                });
+                                                return items.filter(
+                                                    item => item.stock.length !== 0
+                                                );
+                                            }}
+                                            headers={[
+                                                { label: '' },
+                                                { label: 'Product' },
+                                                { label: 'Quantity', colSpan: 2 },
+                                                { label: 'Best Before' },
+                                                { label: '' }
+                                            ]}
+                                        />
+                                        <ProductsCard
+                                            refresh={this.refresh}
+                                            url={`/api/products`}
+                                            title="Out of Stock"
+                                            filter={items => {
+                                                return items.filter(
+                                                    item => item.stock.length === 0
+                                                );
+                                            }}
+                                            headers={[
+                                                { label: '' },
+                                                { label: 'Product' },
+                                                { label: '' }
+                                            ]}
+                                        />
                                     </Col>
                                 </Row>
                             </div>
@@ -35,4 +75,8 @@ class ProductView extends Component {
     }
 }
 
-export default ProductView;
+const mapStateToProps = state => ({
+    products: state.products
+});
+
+export default connect(mapStateToProps)(ProductView);

@@ -1,8 +1,11 @@
 import React, { Component, Fragment } from 'react';
 import { Card, CardHeader, CardBody, Row, Col, Button } from 'reactstrap';
-import ProductTable from '../../Tables/Product/ProductTable';
+// import ProductTable from '../../Tables/Product/ProductTable';
 import ProductModal from '../../Modals/Product/ProductModal';
 import moment from 'moment';
+import DataTable from '../../Tables/DataTable';
+import ISProductRow from '../../Tables/Product/InStockProductRow';
+import OOSProductRow from '../../Tables/Product/OutOfStockProductRow';
 
 class ProductsCard extends Component {
     state = { showAddProductModal: false, refresh: moment() };
@@ -20,9 +23,15 @@ class ProductsCard extends Component {
         });
     };
 
+    refresh = () => {
+        const { refresh } = this.props;
+        this.setState({ state: this.state });
+        if (refresh) refresh();
+    };
+
     render() {
-        const { showAddProductModal, refresh, product } = this.state;
-        const { hideInStock, hideOutOfStock, title } = this.props;
+        const { showAddProductModal, product } = this.state;
+        const { hideInStock, url, title, filter, headers, add } = this.props;
         return (
             <Fragment>
                 <ProductModal
@@ -38,7 +47,7 @@ class ProductsCard extends Component {
                             <Col col="2" className={hideInStock ? null : 'pt-2'}>
                                 <i className="fa fa-align-justify" /> {title}
                             </Col>
-                            {hideInStock ? null : (
+                            {add ? (
                                 <Col col="2" className="mb-xl-0 text-center">
                                     <Button
                                         color="primary"
@@ -48,15 +57,16 @@ class ProductsCard extends Component {
                                         Add
                                     </Button>
                                 </Col>
-                            )}
+                            ) : null}
                         </Row>
                     </CardHeader>
                     <CardBody>
-                        <ProductTable
-                            refresh={refresh}
-                            hideInStock={hideInStock}
-                            hideOutOfStock={hideOutOfStock}
-                            editProduct={this.editProduct}
+                        <DataTable
+                            url={url}
+                            filter={filter}
+                            headers={headers}
+                            DataRow={add ? ISProductRow : OOSProductRow}
+                            refresh={this.refresh}
                         />
                     </CardBody>
                 </Card>

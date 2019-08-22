@@ -25,6 +25,7 @@ var Stock = require('./stock/stock.model');
 var Department = require('./department/department.model');
 var SuperDepartment = require('./superdepartment/superdepartment.model');
 var Recipe = require('./recipe/recipe.model');
+var Log = require('./log/log.model');
 
 handleError = error => {
     console.log(error);
@@ -58,26 +59,18 @@ app.get('/api/products/:barcode', (req, res) => {
 });
 
 app.get('/api/products/', (req, res) => {
-    Product.countDocuments({})
+    Product.find(req.query.where)
+        .populate({
+            path: 'stock',
+            match: { consumed_date: { $exists: false } }
+        })
+        .select(req.query.select)
+        .sort(req.params.sort)
         .exec()
-        .then(count => {
-            Product.find({})
-                .populate({
-                    path: 'stock',
-                    match: { consumed_date: { $exists: false } }
-                })
-                .limit(parseInt(req.query.limit))
-                .skip(parseInt(req.query.skip))
-                .select(req.query.select)
-                .sort(req.params.sort)
-                .exec()
-                .then(products => {
-                    res.send({
-                        total: count,
-                        page: parseInt(req.query.skip) + 1,
-                        data: products
-                    });
-                });
+        .then(data => {
+            res.send({
+                data
+            });
         })
         .catch(err => handleError(err));
 });
@@ -85,11 +78,9 @@ app.get('/api/products/', (req, res) => {
 app.put('/api/products/:id', (req, res) => {
     Product.findByIdAndUpdate(req.params.id, req.body)
         .exec()
-        .then(product => {
+        .then(data => {
             res.send({
-                total: 1,
-                page: 1,
-                data: product
+                data
             });
         })
         .catch(err => handleError(err));
@@ -116,8 +107,7 @@ app.post('/api/products', (req, res) => {
                                 page: 1,
                                 data
                             };
-                            console.log('Emitting...');
-                            io.emit('products', { data: payload });
+
                             res.send(payload);
                         });
                 });
@@ -206,7 +196,31 @@ getBestBeforeDate = image => {
 //  Stocks
 // ------------
 
+app.put('/api/stock/:id', (req, res) => {
+    Stock.findByIdAndUpdate(req.params.id, req.body)
+        .exec()
+        .then(stock => {
+            res.send({
+                data: stock
+            });
+            const difference = req.body.quantity - stock.quantity;
+            if (difference > 0) {
+                Product.findById(stock.product)
+                    .exec()
+                    .then(product => {
+                        new Log({
+                            _id: new mongoose.Types.ObjectId(),
+                            stockChange: difference,
+                            product: product
+                        }).save();
+                    });
+            }
+        })
+        .catch(err => handleError(err));
+});
+
 app.post('/api/stock', (req, res) => {
+    req.body._id = new mongoose.Types.ObjectId();
     new Stock(req.body)
         .save()
         .then(data =>
@@ -221,10 +235,26 @@ app.post('/api/stock', (req, res) => {
                             data
                         };
                         res.send(payload);
+                        new Log({
+                            _id: new mongoose.Types.ObjectId(),
+                            stockChange: 1,
+                            product: product
+                        }).save();
                     });
                 })
         )
         .catch(err => handleError(err));
+});
+
+app.get('/api/logs', (req, res) => {
+    Log.find({})
+        .sort({ created_at: -1 })
+        .exec()
+        .then(logs => {
+            res.send({
+                data: logs
+            });
+        });
 });
 
 // ----------------------
@@ -258,7 +288,6 @@ app.post('/api/recipes/', (req, res) => {
                 page: 1,
                 data: recipe
             };
-            io.emit('products', { data: payload });
             res.send(payload);
         })
         .catch(err => handleError(err));

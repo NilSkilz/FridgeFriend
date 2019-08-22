@@ -127,7 +127,7 @@ class ProductModal extends Component {
         if (!options) return null;
         return (
             <Fragment>
-                <Modal isOpen={show} autoFocus={false}>
+                <Modal isOpen={show} autoFocus={false} className="modal-lg">
                     <ModalHeader>Add Recipe</ModalHeader>
                     <ModalBody>
                         <Form onSubmit={event => event.preventDefault()}>
@@ -153,16 +153,31 @@ class ProductModal extends Component {
                                     ]}
                                     onChange={this.handleServings}
                                 />
-                                <Label for="ingredients" className="mt-3">
-                                    Ingredients
-                                </Label>
+                                <Row className="mt-3">
+                                    <Col lg="6">
+                                        <Label for="ingredients" className="mt-3">
+                                            Ingredients
+                                        </Label>
+                                    </Col>
+                                    <Col lg="2">
+                                        <Label for="quantity" className="mt-3">
+                                            Quantity
+                                        </Label>
+                                    </Col>
+                                    <Col lg="1" />
+                                    <Col lg="2">
+                                        <Label for="amount" className="mt-3">
+                                            Amount
+                                        </Label>
+                                    </Col>
+                                </Row>
                                 {recipe.ingredients &&
                                     recipe.ingredients.map((ingredient, index) => {
                                         return (
                                             <Row key={index} className="mt-3">
-                                                <Col xs="12" lg="8">
+                                                <Col xs="12" lg="6">
                                                     <Select
-                                                        name={index}
+                                                        name="ingredients"
                                                         id={index}
                                                         value={{
                                                             label: ingredient.label,
@@ -172,7 +187,7 @@ class ProductModal extends Component {
                                                         onChange={this.addProduct}
                                                     />
                                                 </Col>
-                                                <Col xs="12" lg="3" className="d-flex p-0">
+                                                <Col xs="12" lg="2" className="d-flex p-0">
                                                     <InputGroup>
                                                         <InputGroupAddon addonType="prepend">
                                                             <Button
@@ -194,7 +209,7 @@ class ProductModal extends Component {
                                                         <Input
                                                             type="text"
                                                             id={index}
-                                                            name={index}
+                                                            name="quantity"
                                                             value={ingredient.quantity}
                                                             onChange={this.quantityChanged}
                                                             style={{ height: 'auto' }}
@@ -217,6 +232,19 @@ class ProductModal extends Component {
                                                             </Button>
                                                         </InputGroupAddon>
                                                     </InputGroup>
+                                                </Col>
+                                                <Col lg="1">
+                                                    <div className="ml-3 mt-2">or</div>
+                                                </Col>
+                                                <Col xs="12" lg="2">
+                                                    <Input
+                                                        type="text"
+                                                        id={index}
+                                                        name={index}
+                                                        value="10%"
+                                                        onChange={this.quantityChanged}
+                                                        style={{ height: 'auto' }}
+                                                    />
                                                 </Col>
                                                 <Col className="align-middle text-center m-0 p-0">
                                                     <i
