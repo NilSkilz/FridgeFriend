@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import { Table, PaginationItem, PaginationLink, Pagination } from 'reactstrap';
-import Axios from 'axios';
+import { connect } from 'react-redux';
 import _ from 'lodash';
 
 class DataTable extends Component {
@@ -11,11 +11,9 @@ class DataTable extends Component {
     }
 
     getData = () => {
-        const { url, filter } = this.props;
-        Axios.get(url).then(({ data }) => {
-            data = filter(data.data);
-            this.setState({ data: data });
-        });
+        const { products, filter } = this.props;
+        const data = filter(products);
+        this.setState({ data });
     };
 
     getPagination = () => {
@@ -128,5 +126,8 @@ class DataTable extends Component {
         );
     }
 }
+const mapStateToProps = state => ({
+    products: state.products
+});
 
-export default DataTable;
+export default connect(mapStateToProps)(DataTable);

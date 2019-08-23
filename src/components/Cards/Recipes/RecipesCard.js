@@ -1,34 +1,11 @@
 import React, { Component, Fragment } from 'react';
 import { Card, CardHeader, CardBody, Row, Col, Button } from 'reactstrap';
-import moment from 'moment';
-import Axios from 'axios';
+import { connect } from 'react-redux';
 import RecipesTable from '../../Tables/Recipes/RecipesTable';
 import RecipeModal from '../../Modals/Recipes/RecipeModal';
 
 class RecipesCard extends Component {
-    state = { showAddRecipeModal: false, refresh: moment() };
-
-    componentDidMount() {
-        this.getData();
-    }
-
-    getData = () => {
-        this.getProducts().then(this.getRecipes());
-    };
-
-    getRecipes = () =>
-        Axios.get('/api/recipes')
-            .then(({ data }) => {
-                this.setState({ recipes: data.data });
-            })
-            .catch(err => this.error(err));
-
-    getProducts = () =>
-        Axios.get('/api/products')
-            .then(({ data }) => {
-                this.setState({ products: data.data });
-            })
-            .catch(err => this.error(err));
+    state = { showAddRecipeModal: false };
 
     editCallback = event => {
         const index = event.target.id;
@@ -46,29 +23,24 @@ class RecipesCard extends Component {
         this.toggleAddRecipeModal();
     };
 
-    toggleAddRecipeModal = () => {
-        const { showAddRecipeModal } = this.state;
-        this.setState({ showAddRecipeModal: !showAddRecipeModal });
-        this.refresh();
-    };
-
-    refresh = () => {
-        this.setState({ refresh: moment() });
+    addRecipe = () => {
+        this.props.dispatch({
+            type: 'EDIT_RECIPE',
+            recipe: {
+                ingredients: [
+                    {
+                        quantity: 1
+                    }
+                ]
+            }
+        });
     };
 
     render() {
-        const { refresh, showAddRecipeModal, recipes, products, recipe } = this.state;
-        const { title } = this.props;
+        const { title, recipe } = this.props;
         return (
             <Fragment>
-                <RecipeModal
-                    className="modal-xl"
-                    show={showAddRecipeModal}
-                    addRecipe={this.addRecipe}
-                    closeModal={this.toggleAddRecipeModal}
-                    recipe={recipe}
-                />
-
+                <RecipeModal show={recipe ? true : false} />
                 <Card>
                     <CardHeader>
                         <Row>
@@ -79,7 +51,7 @@ class RecipesCard extends Component {
                                 <Button
                                     color="primary"
                                     className="float-right"
-                                    onClick={this.toggleAddRecipeModal}
+                                    onClick={this.addRecipe}
                                 >
                                     Add Recipe
                                 </Button>
@@ -88,9 +60,6 @@ class RecipesCard extends Component {
                     </CardHeader>
                     <CardBody>
                         <RecipesTable
-                            refresh={refresh}
-                            recipes={recipes}
-                            products={products}
                             editCallback={this.editCallback}
                             deleteCallback={this.deleteCallback}
                         />
@@ -100,5 +69,9 @@ class RecipesCard extends Component {
         );
     }
 }
+const mapStateToProps = state => ({
+    recipes: state.recipes,
+    recipe: state.recipe
+});
 
-export default RecipesCard;
+export default connect(mapStateToProps)(RecipesCard);

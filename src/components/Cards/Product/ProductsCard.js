@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import { Card, CardHeader, CardBody, Row, Col, Button } from 'reactstrap';
-// import ProductTable from '../../Tables/Product/ProductTable';
+import { connect } from 'react-redux';
 import ProductModal from '../../Modals/Product/ProductModal';
 import moment from 'moment';
 import DataTable from '../../Tables/DataTable';
@@ -15,6 +15,13 @@ class ProductsCard extends Component {
             this.setState({ product: undefined });
         }
         this.setState({ showAddProductModal: !showAddProductModal });
+    };
+
+    addProduct = () => {
+        this.props.dispatch({
+            type: 'EDIT_PRODUCT',
+            product: {}
+        });
     };
 
     editProduct = product => {
@@ -34,13 +41,7 @@ class ProductsCard extends Component {
         const { hideInStock, url, title, filter, headers, add } = this.props;
         return (
             <Fragment>
-                <ProductModal
-                    show={showAddProductModal}
-                    addProduct={this.addProduct}
-                    closeModal={this.toggleAddProductModal}
-                    product={product}
-                />
-
+                <ProductModal />
                 <Card>
                     <CardHeader>
                         <Row>
@@ -52,7 +53,7 @@ class ProductsCard extends Component {
                                     <Button
                                         color="primary"
                                         className="float-right"
-                                        onClick={this.toggleAddProductModal}
+                                        onClick={this.addProduct}
                                     >
                                         Add
                                     </Button>
@@ -62,7 +63,6 @@ class ProductsCard extends Component {
                     </CardHeader>
                     <CardBody>
                         <DataTable
-                            url={url}
                             filter={filter}
                             headers={headers}
                             DataRow={add ? ISProductRow : OOSProductRow}
@@ -74,5 +74,8 @@ class ProductsCard extends Component {
         );
     }
 }
+const mapStateToProps = state => ({
+    products: state.products
+});
 
-export default ProductsCard;
+export default connect(mapStateToProps)(ProductsCard);

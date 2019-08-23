@@ -261,7 +261,7 @@ app.get('/api/logs', (req, res) => {
 //  Recipes
 // ------------
 
-app.get('/api/recipes/', (req, res) => {
+app.get('/api/recipes', (req, res) => {
     Recipe.countDocuments()
         .exec()
         .then(count => {
@@ -279,7 +279,7 @@ app.get('/api/recipes/', (req, res) => {
         .catch(err => handleError(err));
 });
 
-app.post('/api/recipes/', (req, res) => {
+app.post('/api/recipes', (req, res) => {
     new Recipe(req.body)
         .save()
         .then(recipe => {

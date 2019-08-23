@@ -29,14 +29,9 @@ class ProductView extends Component {
                                         <ProductsCard
                                             refresh={this.refresh}
                                             add
-                                            url={`/api/products`}
                                             title="In Stock"
-                                            filter={items => {
-                                                this.props.dispatch({
-                                                    type: 'ADD_PRODUCTS',
-                                                    products: items
-                                                });
-                                                return items.filter(
+                                            filter={products => {
+                                                return products.filter(
                                                     item => item.stock.length !== 0
                                                 );
                                             }}
@@ -54,10 +49,9 @@ class ProductView extends Component {
                                     <Col lg="12">
                                         <ProductsCard
                                             refresh={this.refresh}
-                                            url={`/api/products`}
                                             title="Out of Stock"
-                                            filter={items => {
-                                                return items.filter(
+                                            filter={products => {
+                                                return products.filter(
                                                     item => item.stock.length === 0
                                                 );
                                             }}

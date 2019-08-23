@@ -17,7 +17,6 @@ class OOSProductRow extends Component {
 
     consumeOne = event => {
         const { item: product } = this.props;
-        console.log(product);
         const stock = product.stock[0];
         this.reduceStockByQuantity({ stock, quantity: 1 });
     };

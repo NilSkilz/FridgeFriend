@@ -2,6 +2,8 @@ import React, { Component, Suspense } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import * as router from 'react-router-dom';
 import { Container } from 'reactstrap';
+import { connect } from 'react-redux';
+import Axios from 'axios';
 
 import {
     AppAside,
@@ -32,7 +34,69 @@ class DefaultLayout extends Component {
         this.props.history.push('/login');
     }
 
+    componentDidMount() {
+        this.loadData();
+    }
+
+    loadData = () => {
+        this.getProducts();
+        this.getRecipes();
+        this.getLogs();
+    };
+
+    getProducts = () => {
+        Axios.get('/api/products').then(({ data }) => {
+            this.props.dispatch({
+                type: 'ADD_PRODUCTS',
+                products: data.data
+            });
+            this.setState({ products: data.data });
+        });
+    };
+
+    getRecipes = () => {
+        Axios.get('/api/recipes').then(({ data }) => {
+            this.props.dispatch({
+                type: 'ADD_RECIPES',
+                recipes: data.data
+            });
+            this.setState({ recipes: data.data });
+        });
+    };
+
+    getLogs = () => {
+        Axios.get('/api/logs').then(({ data }) => {
+            this.props.dispatch({
+                type: 'ADD_LOGS',
+                logs: data.data
+            });
+            this.setState({ logs: data.data });
+        });
+    };
+
+    getDepartments = () => {
+        Axios.get('/api/departments').then(({ data }) => {
+            this.props.dispatch({
+                type: 'ADD_DEPTS',
+                depts: data.data
+            });
+            this.setState({ depts: data.data });
+        });
+    };
+
+    getSuperDepartments = () => {
+        Axios.get('/api/superdepartments').then(({ data }) => {
+            this.props.dispatch({
+                type: 'ADD_SUPER_DEPTS',
+                superDepts: data.data
+            });
+            this.setState({ superDepts: data.data });
+        });
+    };
+
     render() {
+        const { products, recipes, logs } = this.props;
+        if (!products || !recipes || !logs) return null;
         return (
             <div className="app">
                 <AppHeader fixed>
@@ -87,4 +151,10 @@ class DefaultLayout extends Component {
     }
 }
 
-export default DefaultLayout;
+const mapStateToProps = state => ({
+    products: state.products,
+    recipes: state.recipes,
+    logs: state.logs
+});
+
+export default connect(mapStateToProps)(DefaultLayout);

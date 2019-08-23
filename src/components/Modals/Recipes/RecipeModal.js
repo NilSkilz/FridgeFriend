@@ -16,17 +16,18 @@ import {
     InputGroupAddon
 } from 'reactstrap';
 import Axios from 'axios';
+import { connect } from 'react-redux';
 
-class ProductModal extends Component {
-    state = { recipe: { ingredients: [{ quantity: 1 }] }, options: [] };
+class RecipeModal extends Component {
+    state = { recipe: null, options: null };
 
     componentDidMount() {
-        this.getProducts();
+        this.formatProducts();
     }
 
     componentDidUpdate(props) {
-        const { recipe } = props;
-        if (recipe) this.setState({ recipe });
+        const { recipe } = this.props;
+        if (recipe !== this.state.recipe) this.setState({ recipe });
     }
 
     handleChange = event => {
@@ -48,13 +49,8 @@ class ProductModal extends Component {
         console.log('Got Error', err);
     };
 
-    getProducts = () => {
-        Axios.get('/api/products/')
-            .then(({ data }) => this.formatProducts(data.data))
-            .catch(err => this.handleError(err));
-    };
-
-    formatProducts = products => {
+    formatProducts = () => {
+        const { products } = this.props;
         const options = products.map(product => {
             return {
                 label: product.name,
@@ -66,8 +62,11 @@ class ProductModal extends Component {
 
     addProduct = (event, type) => {
         const { recipe } = this.state;
-        event.quantity = 1;
-        recipe.ingredients[type.name] = event;
+        const ingredient = {
+            quantity: 1,
+            product: event.value
+        };
+        recipe.ingredients[type.name] = ingredient;
         this.setState({ recipe });
     };
 
@@ -80,15 +79,12 @@ class ProductModal extends Component {
 
     saveRecipe = () => {
         const { recipe } = this.state;
-        const { closeModal } = this.props;
         if (!recipe._id) {
-            Axios.post('/api/recipes', recipe).then(({ data }) => {
-                closeModal();
-            });
+            Axios.post('/api/recipes', recipe).then(({ data }) => {});
+            this.updateStore();
         } else {
-            Axios.put(`/api/recipes/${recipe._id}`, recipe).then(({ data }) => {
-                closeModal();
-            });
+            Axios.put(`/api/recipes/${recipe._id}`, recipe).then(({ data }) => {});
+            this.updateStore();
         }
     };
 
@@ -141,13 +137,23 @@ class ProductModal extends Component {
         this.setState({ recipe });
     };
 
+    updateStore = () => {
+        const { recipe } = this.state;
+        this.props.dispatch({ type: 'UPDATE_RECIPE', recipe });
+        this.close();
+    };
+
+    close = () => {
+        this.props.dispatch({ type: 'EDIT_RECIPE', recipe: null });
+    };
+
     render() {
-        const { show, closeModal } = this.props;
-        const { recipe, options } = this.state;
-        if (!options) return null;
+        const { products } = this.props;
+        const { options, recipe } = this.state;
+        if (!options || !recipe) return null;
         return (
             <Fragment>
-                <Modal isOpen={show} autoFocus={false} className="modal-lg">
+                <Modal isOpen={recipe ? true : false} autoFocus={false} className="modal-lg">
                     <ModalHeader>Add Recipe</ModalHeader>
                     <ModalBody>
                         <Form onSubmit={event => event.preventDefault()}>
@@ -187,6 +193,10 @@ class ProductModal extends Component {
                                 </Row>
                                 {recipe.ingredients &&
                                     recipe.ingredients.map((ingredient, index) => {
+                                        const product = products.find(
+                                            prod => prod._id === ingredient.product
+                                        );
+
                                         return (
                                             <Row key={index} className="mt-3">
                                                 <Col xs="12" lg="8">
@@ -194,8 +204,8 @@ class ProductModal extends Component {
                                                         name={index}
                                                         id={index}
                                                         value={{
-                                                            label: ingredient.label,
-                                                            value: ingredient.value
+                                                            label: product ? product.name : null,
+                                                            value: ingredient.product
                                                         }}
                                                         options={options}
                                                         onChange={this.addProduct}
@@ -247,6 +257,11 @@ class ProductModal extends Component {
                                                         </InputGroupAddon>
                                                     </InputGroup>
                                                 </Col>
+                                                <Col>
+                                                    {product && product.price
+                                                        ? `£${product.price * ingredient.quantity}`
+                                                        : ''}
+                                                </Col>
                                             </Row>
                                         );
                                     })}
@@ -264,7 +279,7 @@ class ProductModal extends Component {
                         <Button block color="primary" onClick={this.saveRecipe}>
                             Save
                         </Button>
-                        <Button block color="secondary" onClick={closeModal} className="mt-0">
+                        <Button block color="secondary" onClick={this.close} className="mt-0">
                             Close
                         </Button>
                     </ModalFooter>
@@ -274,4 +289,9 @@ class ProductModal extends Component {
     }
 }
 
-export default ProductModal;
+const mapStateToProps = state => ({
+    products: state.products,
+    recipe: state.recipe
+});
+
+export default connect(mapStateToProps)(RecipeModal);

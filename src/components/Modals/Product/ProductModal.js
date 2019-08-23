@@ -15,12 +15,13 @@ import {
     InputGroupAddon
 } from 'reactstrap';
 import Axios from 'axios';
+import { connect } from 'react-redux';
 import _ from 'lodash';
 import moment from 'moment';
 import Select from 'react-select';
 
 class ProductModal extends Component {
-    state = { success: false, error: false, showForm: false, product: {} };
+    state = { success: false, error: false, showForm: false, product: null };
 
     componentDidMount() {
         this.getDepartments();
@@ -29,7 +30,7 @@ class ProductModal extends Component {
 
     componentDidUpdate() {
         const { product } = this.props;
-        if (product) this.setState({ product: product, showForm: true });
+        if (product !== this.state.product) this.setState({ product: product });
     }
 
     getDepartments = () => {
@@ -183,9 +184,10 @@ class ProductModal extends Component {
     };
 
     close = () => {
-        const { closeModal } = this.props;
-        this.setState({ product: {}, showForm: false });
-        closeModal();
+        this.props.dispatch({
+            type: 'EDIT_PRODUCT',
+            product: null
+        });
     };
 
     save = () => {
@@ -212,12 +214,11 @@ class ProductModal extends Component {
     };
 
     render() {
-        const { show } = this.props;
         const { success, error, product, departmentOptions, superDepartmentOptions } = this.state;
-
+        if (!product) return null;
         return (
             <Fragment>
-                <Modal isOpen={show} autoFocus={false}>
+                <Modal isOpen={product ? true : false} autoFocus={false}>
                     <ModalHeader>Add Product</ModalHeader>
                     <ModalBody>
                         <Form onSubmit={event => event.preventDefault()}>
@@ -347,4 +348,9 @@ class ProductModal extends Component {
     }
 }
 
-export default ProductModal;
+const mapStateToProps = state => ({
+    products: state.products,
+    product: state.product
+});
+
+export default connect(mapStateToProps)(ProductModal);
