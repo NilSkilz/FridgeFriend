@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import moment from 'moment';
 import _ from 'lodash';
+import { connect } from 'react-redux';
 import Axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Badge, DropdownMenu, DropdownItem, DropdownToggle, ButtonDropdown } from 'reactstrap';
@@ -184,7 +185,12 @@ class ISProductRow extends Component {
                         id={index}
                         className="align-middle cui-pencil icons mr-3"
                         style={{ cursor: 'pointer' }}
-                        onClick={this.editProduct}
+                        onClick={() => {
+                            this.props.dispatch({
+                                type: 'EDIT_PRODUCT',
+                                product: product
+                            });
+                        }}
                     />
                 </td>
             </tr>
@@ -192,4 +198,8 @@ class ISProductRow extends Component {
     }
 }
 
-export default ISProductRow;
+const mapStateToProps = state => ({
+    products: state.products
+});
+
+export default connect(mapStateToProps)(ISProductRow);

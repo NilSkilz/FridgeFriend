@@ -3,6 +3,7 @@ import { Card, CardHeader, CardBody, Row, Col, Button } from 'reactstrap';
 import { connect } from 'react-redux';
 import RecipesTable from '../../Tables/Recipes/RecipesTable';
 import RecipeModal from '../../Modals/Recipes/RecipeModal';
+import RecipeDeleteModal from '../../Modals/Recipes/RecipeDeleteModal';
 
 class RecipesCard extends Component {
     state = { showAddRecipeModal: false };
@@ -37,10 +38,11 @@ class RecipesCard extends Component {
     };
 
     render() {
-        const { title, recipe } = this.props;
+        const { title } = this.props;
         return (
             <Fragment>
-                <RecipeModal show={recipe ? true : false} />
+                <RecipeModal />
+                <RecipeDeleteModal />
                 <Card>
                     <CardHeader>
                         <Row>
@@ -71,7 +73,8 @@ class RecipesCard extends Component {
 }
 const mapStateToProps = state => ({
     recipes: state.recipes,
-    recipe: state.recipe
+    recipe: state.recipe,
+    recipe_delete: state.recipe_delete
 });
 
 export default connect(mapStateToProps)(RecipesCard);

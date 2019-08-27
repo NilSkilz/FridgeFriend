@@ -19,6 +19,7 @@ import { connect } from 'react-redux';
 import _ from 'lodash';
 import moment from 'moment';
 import Select from 'react-select';
+import CurrencyInput from 'react-currency-input';
 
 class ProductModal extends Component {
     state = { success: false, error: false, showForm: false, product: null };
@@ -57,7 +58,7 @@ class ProductModal extends Component {
         });
     };
 
-    handleChange = event => {
+    handleBarcodeChange = event => {
         event.preventDefault();
         const { value: barcode } = event.target;
         let { product } = this.state;
@@ -68,6 +69,20 @@ class ProductModal extends Component {
         if (barcode.length === 13) {
             this.getProductFromAPI(barcode);
         }
+    };
+
+    handleChange = (event, maskedvalue, floatvalue) => {
+        event.preventDefault();
+        const { product } = this.state;
+        const key = event.target.id;
+        let value = event.target.value;
+
+        if (key === 'price') {
+            console.log(floatvalue, maskedvalue);
+            value = floatvalue;
+        }
+        product[key] = value;
+        this.setState({ product });
     };
 
     handleError = err => {
@@ -241,7 +256,7 @@ class ProductModal extends Component {
                                     name="barcode"
                                     id="barcode"
                                     // value={product.barcode}
-                                    onChange={this.handleChange}
+                                    onChange={this.handleBarcodeChange}
                                 />
                                 {product.name ? (
                                     <Fragment>
@@ -249,7 +264,7 @@ class ProductModal extends Component {
                                             Name
                                         </Label>
                                         <Input
-                                            value={product.name}
+                                            value={product.name || ''}
                                             type="input"
                                             name="name"
                                             id="name"
@@ -258,13 +273,21 @@ class ProductModal extends Component {
                                         <Label className="pt-3" for="price">
                                             Price
                                         </Label>
-                                        <Input
+                                        <CurrencyInput
+                                            className="form-control"
+                                            prefix="£"
+                                            id="price"
+                                            name="price"
                                             value={product.price}
+                                            onChangeEvent={this.handleChange}
+                                        />
+                                        {/* <Input
+                                            value={parseFloat(product.price).toFixed(2) || ''}
                                             type="input"
                                             name="price"
                                             id="price"
                                             onChange={this.handleChange}
-                                        />
+                                        /> */}
                                         <Label className="pt-3" for="price">
                                             Minimum Stock
                                         </Label>
@@ -285,7 +308,7 @@ class ProductModal extends Component {
                                                 </InputGroupAddon>
                                                 <Input
                                                     type="text"
-                                                    value={product.minimum_stock}
+                                                    value={product.minimum_stock || ''}
                                                     onChange={this.minStockChanged}
                                                     style={{ height: 'auto' }}
                                                 />
@@ -338,7 +361,7 @@ class ProductModal extends Component {
                         <Button color="secondary" onClick={this.close}>
                             Close
                         </Button>
-                        <Button color="primary" onClick={this.save}>
+                        <Button color="success" onClick={this.save}>
                             Save
                         </Button>
                     </ModalFooter>

@@ -2,21 +2,12 @@ import React, { Component, Fragment } from 'react';
 import { Card, CardHeader, CardBody, Row, Col, Button } from 'reactstrap';
 import { connect } from 'react-redux';
 import ProductModal from '../../Modals/Product/ProductModal';
-import moment from 'moment';
+import ProductDeleteModal from '../../Modals/Product/ProductDeleteModal';
 import DataTable from '../../Tables/DataTable';
 import ISProductRow from '../../Tables/Product/InStockProductRow';
 import OOSProductRow from '../../Tables/Product/OutOfStockProductRow';
 
 class ProductsCard extends Component {
-    state = { showAddProductModal: false, refresh: moment() };
-    toggleAddProductModal = () => {
-        const { showAddProductModal } = this.state;
-        if (showAddProductModal) {
-            this.setState({ product: undefined });
-        }
-        this.setState({ showAddProductModal: !showAddProductModal });
-    };
-
     addProduct = () => {
         this.props.dispatch({
             type: 'EDIT_PRODUCT',
@@ -24,24 +15,12 @@ class ProductsCard extends Component {
         });
     };
 
-    editProduct = product => {
-        this.setState({ product }, () => {
-            this.toggleAddProductModal();
-        });
-    };
-
-    refresh = () => {
-        const { refresh } = this.props;
-        this.setState({ state: this.state });
-        if (refresh) refresh();
-    };
-
     render() {
-        const { showAddProductModal, product } = this.state;
-        const { hideInStock, url, title, filter, headers, add } = this.props;
+        const { hideInStock, title, filter, headers, add } = this.props;
         return (
             <Fragment>
                 <ProductModal />
+                <ProductDeleteModal />
                 <Card>
                     <CardHeader>
                         <Row>

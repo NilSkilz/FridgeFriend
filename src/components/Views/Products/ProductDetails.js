@@ -2,6 +2,8 @@ import React, { Component, Suspense, Fragment } from 'react';
 import { Redirect, Switch } from 'react-router-dom';
 import { Container, Col, Card, CardHeader, Badge, CardBody } from 'reactstrap';
 import Axios from 'axios';
+import _ from 'lodash';
+import moment from 'moment';
 
 class ProductDetails extends Component {
     state = { product: null };
@@ -24,8 +26,20 @@ class ProductDetails extends Component {
         });
     };
 
+    getLastPurchased = () => {
+        const { product } = this.state;
+        const length = product.stock.length - 1;
+        const lastStock = product.stock[length];
+        const date = lastStock.purchase_date;
+        if (date) {
+            return moment(date).fromNow();
+        }
+        return 'n/a';
+    };
+
     render() {
         const { product } = this.state;
+
         return (
             <Container fluid>
                 <Suspense fallback={this.loading()}>
@@ -75,6 +89,22 @@ class ProductDetails extends Component {
                                                     {` / ${product.minimum_stock}`}
                                                 </span>
                                                 <span> required</span>
+                                            </div>
+                                            <div>
+                                                <span className="mr-3"> Current price:</span>
+                                                <span style={{ fontWeight: '200' }}>
+                                                    {`£${
+                                                        product.price
+                                                            ? product.price.toFixed(2)
+                                                            : ' n/a'
+                                                    }`}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="mr-3"> Last purchased:</span>
+                                                <span style={{ fontWeight: '200' }}>
+                                                    {this.getLastPurchased()}
+                                                </span>
                                             </div>
                                         </CardBody>
                                     </Card>

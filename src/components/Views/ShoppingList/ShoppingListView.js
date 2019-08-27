@@ -2,7 +2,7 @@ import React, { Component, Suspense, Fragment } from 'react';
 import { Redirect, Switch } from 'react-router-dom';
 import { Container } from 'reactstrap';
 import { Row, Col } from 'reactstrap';
-import ShoppingListTable from '../../Tables/ShoppingList/ShoppingListTable';
+import ShoppingListCard from '../../Cards/ShoppingList/ShoppingListCard';
 
 class ShoppingListView extends Component {
     loading = () => <div className="animated fadeIn pt-1 text-center">Loading...</div>;
@@ -21,7 +21,7 @@ class ShoppingListView extends Component {
                             <div className="animated fadeIn">
                                 <Row>
                                     <Col xs="12" lg="12">
-                                        <ShoppingListTable title="Shopping List" />
+                                        <ShoppingListCard title="Shopping List" />
                                     </Col>
                                 </Row>
                             </div>

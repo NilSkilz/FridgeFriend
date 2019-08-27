@@ -258,9 +258,16 @@ class RecipeModal extends Component {
                                                     </InputGroup>
                                                 </Col>
                                                 <Col>
-                                                    {product && product.price
-                                                        ? `£${product.price * ingredient.quantity}`
-                                                        : ''}
+                                                    {product && product.price ? (
+                                                        <div className="text-muted mt-2 ml-3">
+                                                            £
+                                                            {(
+                                                                product.price * ingredient.quantity
+                                                            ).toFixed(2)}
+                                                        </div>
+                                                    ) : (
+                                                        ''
+                                                    )}
                                                 </Col>
                                             </Row>
                                         );
@@ -276,11 +283,11 @@ class RecipeModal extends Component {
                         </Form>
                     </ModalBody>
                     <ModalFooter>
-                        <Button block color="primary" onClick={this.saveRecipe}>
-                            Save
-                        </Button>
                         <Button block color="secondary" onClick={this.close} className="mt-0">
                             Close
+                        </Button>
+                        <Button block color="success" onClick={this.saveRecipe}>
+                            Save
                         </Button>
                     </ModalFooter>
                 </Modal>

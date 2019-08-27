@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
+import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Badge } from 'reactstrap';
 
@@ -141,13 +142,23 @@ class OOSProductRow extends Component {
                         id={index}
                         className="align-middle cui-pencil icons mr-3"
                         style={{ cursor: 'pointer' }}
-                        onClick={this.editProduct}
+                        onClick={() => {
+                            this.props.dispatch({
+                                type: 'EDIT_PRODUCT',
+                                product: product
+                            });
+                        }}
                     />
                     <i
                         id={index}
                         className="align-middle cui-trash icons mr-0 pr-0"
                         style={{ cursor: 'pointer' }}
-                        onClick={this.deleteProduct}
+                        onClick={() => {
+                            this.props.dispatch({
+                                type: 'DELETE_PRODUCT',
+                                product: product
+                            });
+                        }}
                     />
                 </td>
             </tr>
@@ -155,4 +166,8 @@ class OOSProductRow extends Component {
     }
 }
 
-export default OOSProductRow;
+const mapStateToProps = state => ({
+    products: state.products
+});
+
+export default connect(mapStateToProps)(OOSProductRow);

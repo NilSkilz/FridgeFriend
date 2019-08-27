@@ -15,6 +15,9 @@ function getState() {
 
 const rootReducer = (state = getState(), action) => {
     switch (action.type) {
+        // ----------------------
+        // Products
+
         case 'ADD_PRODUCTS': {
             return { ...state, products: action.products };
         }
@@ -36,6 +39,23 @@ const rootReducer = (state = getState(), action) => {
             return { ...state, products: products };
         }
 
+        case 'DELETE_PRODUCT': {
+            return { ...state, product_delete: action.product };
+        }
+
+        case 'DELETE_PRODUCT_CONFIRM': {
+            const { product } = action;
+            const products = _.cloneDeep(state.products);
+            const oldProduct = products.find(p => p._id === product._id);
+            if (oldProduct) {
+                products.splice(products.indexOf(oldProduct), 1);
+            }
+            return { ...state, products: products };
+        }
+
+        // ----------------------
+        // Recipes
+
         case 'ADD_RECIPES': {
             return { ...state, recipes: action.recipes };
         }
@@ -53,6 +73,20 @@ const rootReducer = (state = getState(), action) => {
             } else {
                 // New recipe
                 recipes.push(recipe);
+            }
+            return { ...state, recipes: recipes };
+        }
+
+        case 'DELETE_RECIPE': {
+            return { ...state, recipe_delete: action.recipe };
+        }
+
+        case 'DELETE_RECIPE_CONFIRM': {
+            const { recipe } = action;
+            const recipes = _.cloneDeep(state.recipes);
+            const oldRecipe = recipes.find(r => r._id === recipe._id);
+            if (oldRecipe) {
+                recipes.splice(recipes.indexOf(oldRecipe), 1);
             }
             return { ...state, recipes: recipes };
         }

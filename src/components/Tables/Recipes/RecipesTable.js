@@ -4,7 +4,7 @@ import { Table } from 'reactstrap';
 
 class RecipesTable extends Component {
     render() {
-        const { recipes, products, editCallback, deleteCallback } = this.props;
+        const { recipes, products } = this.props;
         if (!products || !recipes) return null;
         console.log(recipes);
         return (
@@ -14,6 +14,7 @@ class RecipesTable extends Component {
                         <th>Name</th>
                         <th>Servings</th>
                         <th>Stock</th>
+                        <th className="text-right">Price</th>
                         <th />
                     </tr>
                 </thead>
@@ -22,18 +23,28 @@ class RecipesTable extends Component {
                         recipes.map((recipe, index) => {
                             let inStock = 0;
                             let ofStock = 0;
+                            let totalPrice = 0;
+                            let approx = false;
                             recipe.ingredients.forEach(ingredient => {
                                 const product = products.find(
                                     product => product._id === ingredient.product
                                 );
                                 if (product.stock.length >= ingredient.quantity) inStock++;
                                 ofStock += ingredient.quantity;
+                                if (product.price) {
+                                    totalPrice += ingredient.quantity * product.price;
+                                } else {
+                                    approx = true;
+                                }
                             });
                             return (
                                 <tr key={index} className="fade show">
                                     <td>{recipe.name}</td>
                                     <td>{recipe.servings}</td>
                                     <td>{`${inStock} / ${ofStock} in stock`}</td>
+                                    <td className="text-right">{`${
+                                        approx ? '~' : ''
+                                    } £${totalPrice.toFixed(2)}`}</td>
                                     <td className="text-right">
                                         <i
                                             id={index}
@@ -50,7 +61,12 @@ class RecipesTable extends Component {
                                             id={index}
                                             className="cui-trash icons mr-0 pr-0"
                                             style={{ cursor: 'pointer' }}
-                                            onClick={deleteCallback}
+                                            onClick={() => {
+                                                this.props.dispatch({
+                                                    type: 'DELETE_RECIPE',
+                                                    recipe
+                                                });
+                                            }}
                                         />
                                     </td>
                                 </tr>

@@ -86,6 +86,13 @@ app.put('/api/products/:id', (req, res) => {
         .catch(err => handleError(err));
 });
 
+app.delete('/api/products/:id', (req, res) => {
+    Product.findByIdAndDelete(req.params.id)
+        .exec()
+        .then(res.status(204).send())
+        .catch(err => handleError(err));
+});
+
 app.post('/api/products', (req, res) => {
     const { department, superDepartment } = req.body;
 
@@ -303,6 +310,13 @@ app.put('/api/recipes/:id', (req, res) => {
                 data: recipe
             });
         })
+        .catch(err => handleError(err));
+});
+
+app.delete('/api/recipes/:id', (req, res) => {
+    Recipe.findByIdAndDelete(req.params.id)
+        .exec()
+        .then(res.status(204).send())
         .catch(err => handleError(err));
 });
 
