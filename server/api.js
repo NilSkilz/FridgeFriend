@@ -178,11 +178,17 @@ getBestBeforeDate = image => {
                             if (data) {
                                 const str = data.replace(/\s/g, '');
 
-                                switch (str) {
-                                    case '28+days':
-                                        return resolve({ unit: 'days', value: '28' });
-                                    default:
-                                        return resolve(null);
+                                if (str.split('+').length === 2) {
+                                    const value = str.split('+')[0];
+                                    const unit = str.split('+')[1];
+
+                                    if (Number.isInteger(value) && unit === 'days') {
+                                        return resolve({ unit, value });
+                                    } else {
+                                        resolve(null);
+                                    }
+                                } else {
+                                    resolve(null);
                                 }
                             } else {
                                 return resolve(null);

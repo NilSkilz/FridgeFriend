@@ -21,15 +21,19 @@ class ProductDetails extends Component {
     };
 
     getProductStockCount = product => {
-        return product.stock.reduce((acc, stock) => {
-            return { quantity: acc.quantity + stock.quantity };
-        });
+        if (product.stock.length > 0) {
+            return product.stock.reduce((acc, stock) => {
+                return { quantity: acc.quantity + stock.quantity };
+            });
+        } else {
+            return { quantity: 0 };
+        }
     };
 
     getLastPurchased = () => {
         const { product } = this.state;
         const length = product.stock.length - 1;
-        const lastStock = product.stock[length];
+        const lastStock = product.stock[length] || {};
         const date = lastStock.purchase_date;
         if (date) {
             return moment(date).fromNow();

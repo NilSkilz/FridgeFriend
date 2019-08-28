@@ -37,6 +37,11 @@ export default {
             name: 'Shopping List',
             url: '/shoppinglist',
             icon: 'cui-cart'
+        },
+        {
+            name: 'Stock',
+            url: '/stocks',
+            icon: 'cui-cart'
         }
         // {
         //     title: true,
